@@ -9,7 +9,7 @@ defmodule Calculator  do
   def sub(server_pid, value), do: send(server_pid, {:sub, value})
   def mult(server_pid, value), do: send(server_pid, {:mult, value})
   def div(server_pid, value), do: send(server_pid, {:div, value})
-  def view(server_pid) do   #at sener end send pid along with message ;at receiverr pattern match message and then send id along with message ; again at sender end pattern match id
+  def view(server_pid) do   #at server end send pid along with message ;at receiverr pattern match message and then send id along with message ; again at sender end pattern match id
     send(server_pid, {:view, self()})
     receive do
       {:response, value} ->value
