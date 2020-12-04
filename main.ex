@@ -1,4 +1,4 @@
-defmodule GenericServer do
+defmodule GenericServer do  //HERE
   def start(module) do
     spawn(fn ->
       init_state = module.init()
