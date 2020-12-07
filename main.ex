@@ -83,7 +83,7 @@ CLIENT SIDE
 
 SERVER SIDE
   #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING 
-  @impl true                                                   ###7 possible callback imit/1 is req which schedule work o be performed 7 
+  @impl true                                                   ### init/1 is a callback to start_link() 
   def init(stack) do
     {:ok, stack}
   end
