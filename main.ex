@@ -1,4 +1,6 @@
+#########################################################CONCURRENCY########################################################################################
 defmodule Calculator  do
+CLIENT SIDE
   #CREATE PROCESS ID
   def start do                                                               #pid = Calculator.start
     spawn(fn -> loop(0) end)
@@ -16,6 +18,7 @@ defmodule Calculator  do
     end
   end
 
+SERVER SIDE
   #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING BY LOOPING RECURSIVELY 
   defp loop(current_value) do
     new_value =
@@ -29,12 +32,71 @@ defmodule Calculator  do
                current_value
         _ ->IO.puts("Invalid Message")
       end
-
+      
+    # IF NO PATTERN MATCHED ISSUE A TIMEOUTLIKE  500 MILLISECONDS
+    after
+    500 -> IO.puts "Times up"
     loop(new_value)
   end
   
 
-
-
 end
+end
+
+#########################################################GENSERVER########################################################################################
+GENSERVER.EX
+defmodule Stack do
+  use GenServer
+  use GenServer, restart: :transient, shutdown: 10_000  --> accepts a list of options which configures the child specification and therefore how it runs under a supervisor. 
+                                                            :id - the child specification identifier, defaults to the current module
+                                                            :restart - when the child should be restarted, defaults to :permanent
+                                                            :shutdown - how to shut down the child, either immediately or by giving it time to shut down
+CLIENT SIDE
+  #CREATE PROCESS ID
+  def start_link(default) when is_list(default) do             #pid = Stack.start_link()
+    GenServer.start_link(__MODULE__, default) #__MODULE__ gives name of module
+  end
+
+  #SEND PROCESS ID ALONG WITH A MESSAGE TO MAILBOX 
+  def push(pid, element) do                                   #Stack.push(pid,2) ;Stack.pop(pid) 
+    GenServer.cast(pid, {:push, element})
+  end
+
+  def pop(pid) do
+    GenServer.call(pid, :pop)
+  end
+
+SERVER SIDE
+  #7 POSSIBLE CALLBACK ; INIT/1 IS REQUIRED
+  @impl true
+  def init(stack) do
+    {:ok, stack}
+  end
+  
+  #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING 
+  @impl true
+  def handle_call(:pop, _from, [head | tail]) do # requires a reply
+    {:reply, head, tail}
+  end
+
+  @impl true
+  def handle_cast({:push, element}, state) do # does not require a reply
+    {:noreply, [element | state]}
+  end
+end
+
+SUPERVISOR.EX
+defmodule StackSupervisor do
+  use Supervisor
+
+  #CREATE SUPERVISOR
+  def start_link(default) when is_list(default) do      
+     children =  Stack # The same as {Stack, []}
+    Supervisor.start_link(children, strategy: :one_for_all) #__MODULE__ gives name of module
+  end
+
+ 
+
+
+
 
