@@ -243,7 +243,7 @@ lib
   --router.ex , router.ex --> created by you
 2.ADD DEPENDENCIES
 In mix.exs add genstage in dependencies  
-defp deps do [{:plug, "~> 1.0"},{:cowboy, "~> 1.0.0"}]    
+defp deps do [{:plug, "~> 1.0"},{:cowboy, "~> 1.0.0"},{:plug_cowboy, "~> 1.0"}]    
 def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger, :plug, :cowboy],
@@ -251,5 +251,49 @@ def application do
     env: [cowboy_port: 8000]]
   end
 To  compile added dependencies run mix do deps.get , compile 
+3.RUN PROJECT
+C:\User\Dell\desktop\ElixirBasic\projectname > mix run --no-halt--> create projecat at http://127.0.0.1:8000/
 
 
+PLUG_EX.EX
+defmodule PlugEx do
+  use Application
+  require Logger
+
+  //START THE SUPERVISOR
+  def start(_type, _args) do
+    port = Application.get_env(:plug_ex, :cowboy_port, 8000)
+    children = [Plug.Adapters.Cowboy.child_spec(:http, PlugEx.Router, [], port: port)]
+    Logger.info "App Started!"
+
+    Supervisor.start_link(children, strategy: :one_for_one)
+  end
+end
+
+
+ROUTER.EX
+defmodule PlugEx.Router do
+	use Plug.Router
+
+        //CREATE PLUG FOR ROUTERS BY MATCHING THE ROUTE AND DISPATCH THE CODE
+	plug :match
+	plug :dispatch
+	plug Plug.Static, at: "/home", from: :server
+
+       //PATTER MATCH THE PATH AND SEND RESPONSE ACCORDINGLY
+	get "/" do
+		send_resp(conn, 200, "Hello There!")
+	end
+
+	get "/about/:user_name" do
+		send_resp(conn, 200, "Hello, #{user_name}")
+	end
+
+	get "/home" do
+		conn = put_resp_content_type(conn, "text/html")
+		send_file(conn, 200, "lib/index.html")
+	end
+
+
+	match _, do: send_resp(conn, 404, "404 error not found!")
+end
