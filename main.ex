@@ -127,7 +127,7 @@ defmodule StackSupervisor do
     Supervisor.start_link(children, strategy: :one_for_all) #__MODULE__ gives name of module
   end
 
-#########################################################GENTAGE#################################################################################################################
+#########################################################GESNTAGE#################################################################################################################
 1.CREATE PROJECT-> 
 lib
   -foldername
@@ -239,8 +239,8 @@ end
 #########################################################PLUG COWBOY#################################################################################################################
 1.CREATE PROJECT-> 
 lib
-  --filename.ex-->created by the command mix new projectname 
-  -plug.ex , router.ex --> created by you
+  --plug_ex.ex-->created by the command mix new projectname (filename is same as projectname)
+  --router.ex , router.ex --> created by you
 2.ADD DEPENDENCIES
 In mix.exs add genstage in dependencies  
 defp deps do [{:plug, "~> 1.0"},{:cowboy, "~> 1.0.0"}]    
