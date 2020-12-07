@@ -43,19 +43,32 @@ SERVER SIDE
 end
 end
 
-#########################################################GENSERVER########################################################################################
+#########################################################GENSERVER --- https://hexdocs.pm/elixir/GenServer.html########################################################################################
 GENSERVER.EX
 defmodule Stack do
   use GenServer
-  use GenServer, restart: :transient, shutdown: 10_000  --> accepts a list of options which configures the child specification and therefore how it runs under a supervisor. 
+  use GenServer, restart: :transient, shutdown: 10_000  -->  list of options which configures the child specification and therefore how it runs under a supervisor. 
                                                             :id - the child specification identifier, defaults to the current module
                                                             :restart - when the child should be restarted, defaults to :permanent
                                                             :shutdown - how to shut down the child, either immediately or by giving it time to shut down
 CLIENT SIDE
   #CREATE PROCESS ID
   def start_link(default) when is_list(default) do             #pid = Stack.start_link()
-    GenServer.start_link(__MODULE__, default) #__MODULE__ gives name of module
-  end
+    GenServer.start_link(__MODULE__, default)                  -->list of args which decide how the genserver starts under supervisro
+                                                                  __MODULE__  -->gives name of module
+                                                                  :name option --> registers the genserver
+                                                                                  an atom - the GenServer is registered locally with the given name using Process.register/2.
+                                                                                             EG # Start the server and register it locally with name MyStack
+                                                                                                  {:ok, _} = GenServer.start_link(Stack, [:hello], name: MyStack)
+                                                                                                   # Now messages can be sent directly to MyStack
+                                                                                                   GenServer.call(MyStack, :pop)
+
+                                                                                  {:global, term} - the GenServer is registered globally with the given term using the functions in the :global module.
+
+                                                                                   {:via, module, term} - the GenServer is registered with the given mechanism and name. The :via option expects a module that exports register_name/2, unregister_name/1,
+                                                                                                          whereis_name/1 and send/2. One such example is the :global module which uses these functions for keeping the list of names of processes and their associated 
+                                                                                                          PIDs that are available globally for a network of Elixir nodes. Elixir also ships with a local, decentralized and scalable registry called Registry for locally
+                                                                                                          storing names that are generated dynamically.
 
   #SEND PROCESS ID ALONG WITH A MESSAGE TO MAILBOX 
   def push(pid, element) do                                   #Stack.push(pid,2) ;Stack.pop(pid) 
@@ -67,20 +80,19 @@ CLIENT SIDE
   end
 
 SERVER SIDE
-  #7 POSSIBLE CALLBACK ; INIT/1 IS REQUIRED
-  @impl true
+  #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING 
+  @impl true                                    #7 possible callback imit/1 is req which schedule work o be performed 7 
   def init(stack) do
     {:ok, stack}
   end
   
-  #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING 
   @impl true
-  def handle_call(:pop, _from, [head | tail]) do # requires a reply
+  def handle_call(:pop, _from, [head | tail]) do #call/2 is a synchronous fn that requires a reply and and pettern matches to call on client side(pop in our case)
     {:reply, head, tail}
   end
 
   @impl true
-  def handle_cast({:push, element}, state) do # does not require a reply
+  def handle_cast({:push, element}, state) do #cast/3 is a asynchronous fn that does requires a reply and and pettern matches to cast on client side(push in our case)
     {:noreply, [element | state]}
   end
 end
