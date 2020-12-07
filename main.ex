@@ -127,29 +127,33 @@ defmodule StackSupervisor do
     Supervisor.start_link(children, strategy: :one_for_all) #__MODULE__ gives name of module
   end
 
-#########################################################GENTAGE########################################################################################
+#########################################################GENTAGE#################################################################################################################
 1.C:\User\Dell\desktop\ElixirBasic >mix new projectname --sup  create --> create basic project;--sup will create in lib--foldername--application.ex
 2.You add producer.ex , consumer.ex , producer_consumer.ex   and in mix.exs add genstage in dependencies   defp deps do[{:gen_stage, "~> 0.11"},] 
 3.C:\User\Dell\desktop\ElixirBasic >mix do deps.get , compile --> compile added dependencies
-  
-PRODUCER.EX
+
+PRODUCER.EX ---> PRODUCERCONSUMER.EX --> CONSUMER.EX
+  |________________ |________________________|
+                   APPLICATIPIN.EX
+
+PRODUCER.EX(CREATE A STREAM OF NUMBER)
 defmodule Gencounter.Producer do
 	use GenStage
 
-	def start_link(init \\ 0) do
+	def start_link(init \\ 0) do                                       
 		GenStage.start_link(__MODULE__, init, name: __MODULE__)
 	end
 
 	def init(counter), do: {:producer, counter}
 
 	def handle_demand(demand, state) do
-		events = Enum.to_list(state..state + demand - 1)
+		events = Enum.to_list(state..state + demand - 1)  
 		{:noreply, events, (state+demand)}
 	end
 end
 
 
-PRODUCER-CONSUMER.EX
+PRODUCER-CONSUMER.EX(FILTER THE STREAM OF NUMBER)
 defmodule Gencounter.ProducerConsumer do
 	use GenStage
 
@@ -173,7 +177,7 @@ defmodule Gencounter.ProducerConsumer do
 end
 
 
-CONSUMER.EX
+CONSUMER.EX(OP THE STREAM OF NUMBER)
 defmodule Gencounter.Consumer do
 	use GenStage
 
@@ -194,4 +198,29 @@ defmodule Gencounter.Consumer do
 	end
 end
 
+APPLCATION.EX(WIRE THESE FILES)
+defmodule Gencounter.Application do
+  # See http://elixir-lang.org/docs/stable/elixir/Application.html
+  # for more information on OTP Applications
+  @moduledoc false
 
+  use Application
+
+  def start(_type, _args) do
+    import Supervisor.Spec, warn: false
+
+    # Define workers and child supervisors to be supervised
+    children = [
+      worker(Gencounter.Producer, [0]),
+      worker(Gencounter.ProducerConsumer, []),
+      worker(Gencounter.Consumer, [], id: :a),
+      worker(Gencounter.Consumer, [], id: :b),
+      worker(Gencounter.Consumer, [], id: :c),
+    ]
+
+    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
+    # for other strategies and supported options
+    opts = [strategy: :one_for_one, name: Gencounter.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+end
