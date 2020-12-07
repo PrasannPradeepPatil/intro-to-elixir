@@ -44,7 +44,7 @@ end
 end
 
 #########################################################GENSERVER --- https://hexdocs.pm/elixir/GenServer.html########################################################################################
-DIAGRAM -->https://www.youtube.com/watch?v=0tQ8nfKQBL0&list=PLJbE2Yu2zumA-p21bEQB6nsYABAO-HtF2&index=10 0:51
+                                                         DIAGRAM -->https://www.youtube.com/watch?v=0tQ8nfKQBL0&list=PLJbE2Yu2zumA-p21bEQB6nsYABAO-HtF2&index=10 0:51
 
 GENSERVER.EX
 defmodule Stack do
@@ -127,8 +127,71 @@ defmodule StackSupervisor do
     Supervisor.start_link(children, strategy: :one_for_all) #__MODULE__ gives name of module
   end
 
- 
-#########################################################GENSTAGE###################################################################
-C:\User\Dell\desktop\ElixirBasic >mix new projectname  --sup --> create a 
+#########################################################GENTAGE########################################################################################
+1.C:\User\Dell\desktop\ElixirBasic >mix new projectname --sup  create --> create basic project;--sup will create in lib--foldername--application.ex
+2.You add producer.ex , consumer.ex , producer_consumer.ex   and in mix.exs add genstage in dependencies   defp deps do[{:gen_stage, "~> 0.11"},] 
+3.C:\User\Dell\desktop\ElixirBasic >mix do deps.get , compile --> compile added dependencies
+  
+PRODUCER.EX
+defmodule Gencounter.Producer do
+	use GenStage
+
+	def start_link(init \\ 0) do
+		GenStage.start_link(__MODULE__, init, name: __MODULE__)
+	end
+
+	def init(counter), do: {:producer, counter}
+
+	def handle_demand(demand, state) do
+		events = Enum.to_list(state..state + demand - 1)
+		{:noreply, events, (state+demand)}
+	end
+end
+
+
+PRODUCER-CONSUMER.EX
+defmodule Gencounter.ProducerConsumer do
+	use GenStage
+
+	require Integer
+
+	def start_link do
+		GenStage.start_link(__MODULE__, :state, name: __MODULE__)
+	end
+
+	def init(state) do
+		{:producer_consumer, state, subscribe_to: [Gencounter.Producer]}
+	end
+
+	def handle_events(events, _from, state) do
+		numbers =
+			events 
+			|> Enum.filter(&Integer.is_even/1)
+
+		{:noreply, numbers, state}
+	end
+end
+
+
+CONSUMER.EX
+defmodule Gencounter.Consumer do
+	use GenStage
+
+	def start_link do 
+		GenStage.start_link(__MODULE__, :state)
+	end
+
+	def init(state) do
+		{:consumer, state, subscribe_to: [Gencounter.ProducerConsumer]}
+	end
+
+	def handle_events(events, _from, state) do
+		for event <- events do
+			IO.inspect {self(), event, state}
+		end
+
+		{:noreply, [], state}
+	end
+end
 
 
