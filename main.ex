@@ -128,9 +128,20 @@ defmodule StackSupervisor do
   end
 
 #########################################################GENTAGE#################################################################################################################
-1.C:\User\Dell\desktop\ElixirBasic >mix new projectname --sup  create --> create basic project;--sup will create in lib--foldername--application.ex
-2.You add producer.ex , consumer.ex , producer_consumer.ex   and in mix.exs add genstage in dependencies   defp deps do[{:gen_stage, "~> 0.11"},] 
-3.C:\User\Dell\desktop\ElixirBasic >mix do deps.get , compile --> compile added dependencies
+1.CREATE PROJECT-> 
+lib
+  -foldername
+    -application.ex -->created by the command mix new projectname --sup
+    -producer.ex , consumer.ex , producer_consumer.ex   -->created by you
+2.ADD DEPENDENCIES
+In mix.exs add dependencies
+def application do
+    # Specify extra applications you'll use from Erlang/Elixir
+    [extra_applications: [:logger],
+     mod: {Gencounter.Application, []}]
+end
+defp deps do[{:gen_stage, "~> 0.11"},] 
+To  compile added dependencies run mix do deps.get , compile 
 
 PRODUCER.EX ---> PRODUCERCONSUMER.EX --> CONSUMER.EX
   |________________ |________________________|
@@ -224,3 +235,21 @@ defmodule Gencounter.Application do
     Supervisor.start_link(children, opts)
   end
 end
+
+#########################################################PLUG COWBOY#################################################################################################################
+1.CREATE PROJECT-> 
+lib
+  --filename.ex-->created by the command mix new projectname 
+  -plug.ex , router.ex --> created by you
+2.ADD DEPENDENCIES
+In mix.exs add genstage in dependencies  
+defp deps do [{:plug, "~> 1.0"},{:cowboy, "~> 1.0.0"}]    
+def application do
+    # Specify extra applications you'll use from Erlang/Elixir
+    [extra_applications: [:logger, :plug, :cowboy],
+    mod: {PlugEx, []},
+    env: [cowboy_port: 8000]]
+  end
+To  compile added dependencies run mix do deps.get , compile 
+
+
