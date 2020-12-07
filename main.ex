@@ -128,7 +128,7 @@ defmodule StackSupervisor do
   end
 
  
-
-
+#########################################################GENSTAGE###################################################################
+C:\User\Dell\desktop\ElixirBasic >mix new projectname  --sup --> create a 
 
 
