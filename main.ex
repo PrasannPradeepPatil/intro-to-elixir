@@ -281,15 +281,15 @@ defmodule PlugEx.Router do
 	plug Plug.Static, at: "/home", from: :server
 
        //PATTER MATCH THE PATH AND SEND RESPONSE ACCORDINGLY
-	get "/" do
+	get "/" do  #match http://127.0.0.1:8000
 		send_resp(conn, 200, "Hello There!")
 	end
 
-	get "/about/:user_name" do
+	get "/about/:user_name" do #match http://127.0.0.1:8000/about/:user_name
 		send_resp(conn, 200, "Hello, #{user_name}")
 	end
 
-	get "/home" do
+	get "/home" do  #match http://127.0.0.1:8000/home
 		conn = put_resp_content_type(conn, "text/html")
 		send_file(conn, 200, "lib/index.html")
 	end
