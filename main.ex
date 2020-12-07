@@ -2,17 +2,17 @@
 defmodule Calculator  do
 CLIENT SIDE
   #CREATE PROCESS ID
-  def start do                                                               #pid = Calculator.start
+  def start do                                                                ###pid = Calculator.start
     spawn(fn -> loop(0) end)
   end
   
   #SEND PROCESS ID ALONG WITH A MESSAGE TO MAILBOX 
-  def add(server_pid, value), do: send(server_pid, {:add, value})          #Calculator.add(pid, 1);Calculator.sub(pid, 1);Calculator.mul(pid, 1);Calculator.div(pid, 1);Calculator.view(pid)
+  def add(server_pid, value), do: send(server_pid, {:add, value})             ###Calculator.add(pid, 1);Calculator.sub(pid, 1);Calculator.mul(pid, 1);Calculator.div(pid, 1);Calculator.view(pid)
   def sub(server_pid, value), do: send(server_pid, {:sub, value})
   def mult(server_pid, value), do: send(server_pid, {:mult, value})
   def div(server_pid, value), do: send(server_pid, {:div, value})
-  def view(server_pid) do   #at server end send pid along with message ;at receiverr pattern match message and then send id along with message ; again at sender end pattern match id
-    send(server_pid, {:view, self()})
+  def view(server_pid) do            #at server end send pid along with message ;at receiverr pattern match  
+    send(server_pid, {:view, self()})message and then send id along with message again at sender end pattern match id
     receive do
       {:response, value} ->value
     end
@@ -22,7 +22,7 @@ SERVER SIDE
   #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING BY LOOPING RECURSIVELY 
   defp loop(current_value) do
     new_value =
-      receive do
+      receive do                                                                   ###receive do pattern matches the message in mailbox
         {:add, value} ->current_value + value
         {:sub, value} ->current_value - value
         {:mult, value} ->current_value * value
@@ -33,8 +33,8 @@ SERVER SIDE
         _ ->IO.puts("Invalid Message")
       end
       
-    # IF NO PATTERN MATCHED ISSUE A TIMEOUTLIKE  500 MILLISECONDS
-    after
+ 
+    after                                                                           ###if pattern not matched timeout after 500 ms
     500 -> IO.puts "Times up"
     loop(new_value)
   end
@@ -44,6 +44,8 @@ end
 end
 
 #########################################################GENSERVER --- https://hexdocs.pm/elixir/GenServer.html########################################################################################
+DIAGRAM -->https://www.youtube.com/watch?v=0tQ8nfKQBL0&list=PLJbE2Yu2zumA-p21bEQB6nsYABAO-HtF2&index=10 0:51
+
 GENSERVER.EX
 defmodule Stack do
   use GenServer
@@ -53,7 +55,7 @@ defmodule Stack do
                                                             :shutdown - how to shut down the child, either immediately or by giving it time to shut down
 CLIENT SIDE
   #CREATE PROCESS ID
-  def start_link(default) when is_list(default) do             #pid = Stack.start_link()
+  def start_link(default) when is_list(default) do              ###pid = Stack.start_link()
     GenServer.start_link(__MODULE__, default)                  -->list of args which decide how the genserver starts under supervisro
                                                                   __MODULE__  -->gives name of module
                                                                   :name option --> registers the genserver
@@ -71,7 +73,7 @@ CLIENT SIDE
                                                                                                           storing names that are generated dynamically.
 
   #SEND PROCESS ID ALONG WITH A MESSAGE TO MAILBOX 
-  def push(pid, element) do                                   #Stack.push(pid,2) ;Stack.pop(pid) 
+  def push(pid, element) do                                     ###Stack.push(pid,2) ;Stack.pop(pid) 
     GenServer.cast(pid, {:push, element})
   end
 
@@ -81,21 +83,39 @@ CLIENT SIDE
 
 SERVER SIDE
   #RECEIVE MESSAGE AND PERFORM PATTERM MATCHING 
-  @impl true                                    #7 possible callback imit/1 is req which schedule work o be performed 7 
+  @impl true                                                   ###7 possible callback imit/1 is req which schedule work o be performed 7 
   def init(stack) do
     {:ok, stack}
   end
   
   @impl true
-  def handle_call(:pop, _from, [head | tail]) do #call/2 is a synchronous fn that requires a reply and and pettern matches to call on client side(pop in our case)
+  def handle_call(:pop, _from, [head | tail]) do               ###call/2 is a synchronous fn that requires a reply and and pettern matches to call on client side(pop in our case)
     {:reply, head, tail}
   end
 
   @impl true
-  def handle_cast({:push, element}, state) do #cast/3 is a asynchronous fn that does requires a reply and and pettern matches to cast on client side(push in our case)
+  def handle_cast({:push, element}, state) do                  ###cast/3 is a asynchronous fn that does requires a reply and and pettern matches to cast on client side(push in our case)
     {:noreply, [element | state]}
   end
+
+
+  @impl true
+  def handle_info(:work, state) do                            ###handle_info handles "regular" messages sent by functions such as Kernel.send/2, Process.send_after/4 
+    # Do the desired work here                                   OR  handling monitor DOWN messages sent by Process.monitor/1 
+                                                                 OR  perform periodic work, with the help of Process.send_after/4: 
+    # Reschedule once more
+    schedule_work()
+    {:noreply, state}
+  end
+  
+  defp schedule_work do
+    # In 2 hours
+    Process.send_after(self(), :work, 2 * 60 * 60 * 1000)
+  end
+
 end
+
+
 
 SUPERVISOR.EX
 defmodule StackSupervisor do
